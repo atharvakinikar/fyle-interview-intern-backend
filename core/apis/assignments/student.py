@@ -3,8 +3,8 @@ from core import db
 from core.apis import decorators
 from core.apis.responses import APIResponse
 from core.models.assignments import Assignment
-
 from .schema import AssignmentSchema, AssignmentSubmitSchema
+
 student_assignments_resources = Blueprint('student_assignments_resources', __name__)
 
 
@@ -12,7 +12,10 @@ student_assignments_resources = Blueprint('student_assignments_resources', __nam
 @decorators.authenticate_principal
 def list_assignments(p):
     """Returns list of assignments"""
+
+    # We have to pass the student_id field to the get_assignments_by_student() function
     students_assignments = Assignment.get_assignments_by_student(p.student_id)
+
     students_assignments_dump = AssignmentSchema().dump(students_assignments, many=True)
     return APIResponse.respond(data=students_assignments_dump)
 
@@ -23,6 +26,7 @@ def list_assignments(p):
 def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
     assignment = AssignmentSchema().load(incoming_payload)
+
     assignment.student_id = p.student_id
 
     upserted_assignment = Assignment.upsert(assignment)
@@ -36,6 +40,7 @@ def upsert_assignment(p, incoming_payload):
 @decorators.authenticate_principal
 def submit_assignment(p, incoming_payload):
     """Submit an assignment"""
+
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
 
     submitted_assignment = Assignment.submit(
